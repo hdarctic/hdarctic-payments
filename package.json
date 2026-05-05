@@ -1,0 +1,12 @@
+{
+  "name": "hdarctic-payments",
+  "version": "1.0.0",
+  "description": "Stripe Checkout backend for HD Arctic — creates Checkout Sessions, handles webhooks, returns booking confirmations.",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "stripe": "^14.25.0"
+  }
+}
