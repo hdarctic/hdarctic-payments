@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>HD Arctic — Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-2: #0f0f0f;
+    --surface: #161616;
+    --surface-2: #1d1d1d;
+    --surface-3: #252525;
+    --border: #2a2a2a;
+    --border-strong: #3a3a3a;
+    --text: #ece4d5;
+    --text-soft: #b8aea0;
+    --muted: #807870;
+    --accent: #c9a961;
+    --accent-soft: #c9a96118;
+    --accent-line: #c9a96140;
+    --danger: #c97c61;
+    --success: #7eb88a;
+    --info: #5a8fb5;
+    --serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    --shadow: 0 8px 32px rgba(0,0,0,0.6);
+    --shadow-soft: 0 2px 8px rgba(0,0,0,0.4);
+    --radius: 2px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button { font-family: inherit; cursor: pointer; }
+  input, select, textarea { font-family: inherit; }
+  ::selection { background: var(--accent); color: #000; }
+
+  /* ====== Login screen ====== */
+  .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: radial-gradient(ellipse at top, #14110b 0%, var(--bg) 60%); }
+  .login-card { width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--border); padding: 48px 40px; box-shadow: var(--shadow); }
+  .login-brand { font-family: var(--serif); font-weight: 500; font-size: 32px; letter-spacing: 0.5px; margin: 0; }
+  .login-brand-sub { color: var(--muted); font-family: var(--sans); font-size: 11px; text-transform: uppercase; letter-spacing: 3px; margin-top: 6px; margin-bottom: 36px; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
+  .field input, .field select, .field textarea { width: 100%; padding: 11px 13px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 14px; outline: none; transition: border-color 0.15s ease; border-radius: var(--radius); }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 80px; font-family: inherit; line-height: 1.55; }
+  .field .hint { color: var(--muted); font-size: 11px; margin-top: 6px; }
+  .field .err { color: var(--danger); font-size: 11px; margin-top: 6px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 11px 18px; background: var(--accent); color: #0a0a0a; border: none; font-weight: 600; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; border-radius: var(--radius); transition: filter 0.15s ease, opacity 0.15s ease; }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:disabled { opacity: 0.5; cursor: wait; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border-strong); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); filter: none; }
+  .btn.danger { background: transparent; color: var(--danger); border: 1px solid #5a3530; }
+  .btn.danger:hover { background: #5a3530; color: #fff; filter: none; }
+  .btn.full { width: 100%; justify-content: center; padding-top: 13px; padding-bottom: 13px; }
+  .btn.sm { padding: 6px 12px; font-size: 11px; letter-spacing: 0.8px; }
+
+  /* ====== App shell ====== */
+  .app { display: none; min-height: 100vh; flex-direction: column; }
+  .app.open { display: flex; }
+
+  header.top { display: flex; align-items: center; gap: 28px; padding: 18px 28px; background: var(--bg-2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand-name { font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing: 1px; line-height: 1; }
+  .brand-sub { color: var(--muted); font-family: var(--sans); font-size: 10px; text-transform: uppercase; letter-spacing: 3px; }
+  .top-spacer { flex: 1; }
+  .user-chip { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-soft); }
+  .user-chip .who { padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius); }
+  .user-chip .who strong { color: var(--accent); font-weight: 600; }
+  .user-chip button { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; border-radius: var(--radius); }
+  .user-chip button:hover { color: var(--text); border-color: var(--accent); }
+
+  /* ====== Toolbar ====== */
+  .toolbar { display: flex; gap: 14px; align-items: center; padding: 18px 28px; background: var(--bg-2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .search { flex: 1; min-width: 280px; max-width: 420px; position: relative; }
+  .search input { width: 100%; padding: 10px 14px 10px 38px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 13px; outline: none; border-radius: var(--radius); }
+  .search input:focus { border-color: var(--accent); }
+  .search::before { content: "⌕"; position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 18px; }
+
+  .filter-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .chip { padding: 6px 12px; background: var(--surface); border: 1px solid var(--border); color: var(--text-soft); font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase; border-radius: var(--radius); cursor: pointer; transition: all 0.15s ease; }
+  .chip:hover { color: var(--text); border-color: var(--border-strong); }
+  .chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+  .toolbar .right { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+  .count { color: var(--muted); font-size: 11px; letter-spacing: 0.5px; }
+
+  /* ====== Main layout ====== */
+  main { flex: 1; display: flex; min-height: 0; }
+  .list-pane { flex: 1; overflow-y: auto; background: var(--bg); }
+
+  /* List rows */
+  .row { display: grid; grid-template-columns: 110px 1.4fr 1.4fr 1fr 0.9fr 110px 130px; gap: 18px; padding: 16px 28px; border-bottom: 1px solid var(--border); cursor: pointer; align-items: center; transition: background 0.12s ease; }
+  .row:hover { background: var(--surface); }
+  .row.selected { background: var(--accent-soft); padding-left: 26px; border-left: 2px solid var(--accent); }
+  .row .col-id { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .row .col-id .src { display: block; font-family: var(--sans); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-soft); margin-top: 3px; }
+  .row .col-name strong { color: var(--text); font-weight: 500; display: block; }
+  .row .col-name .em { color: var(--muted); font-size: 11px; margin-top: 2px; display: block; }
+  .row .col-pkg { color: var(--text-soft); font-size: 13px; }
+  .row .col-pkg .room { color: var(--muted); font-size: 11px; display: block; margin-top: 2px; }
+  .row .col-dates { color: var(--text-soft); font-size: 12px; }
+  .row .col-dates .nights { color: var(--muted); font-size: 11px; display: block; margin-top: 2px; }
+  .row .col-guests { color: var(--text-soft); font-size: 12px; text-align: center; }
+  .row .col-status { text-align: center; }
+  .row .col-amount { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); font-weight: 500; font-size: 13px; }
+
+  .list-head { display: grid; grid-template-columns: 110px 1.4fr 1.4fr 1fr 0.9fr 110px 130px; gap: 18px; padding: 14px 28px; border-bottom: 1px solid var(--border); font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); background: var(--bg-2); position: sticky; top: 0; z-index: 5; font-weight: 600; }
+  .list-head .col-amount { text-align: right; }
+  .list-head .col-guests, .list-head .col-status { text-align: center; }
+
+  /* Status pills */
+  .pill { display: inline-block; padding: 3px 10px; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; border-radius: 11px; font-weight: 500; border: 1px solid currentColor; }
+  .pill.new      { color: #6fa8d0; }
+  .pill.confirmed{ color: var(--accent); }
+  .pill.paid     { color: var(--success); }
+  .pill.cancelled{ color: var(--muted); }
+  .pill.completed{ color: #6fbfb0; }
+  .pill.refunded { color: var(--danger); }
+  .pill.gold     { background: var(--accent-soft); color: var(--accent); }
+
+  /* Empty / loading */
+  .empty { padding: 80px 28px; text-align: center; color: var(--muted); }
+  .empty h3 { font-family: var(--serif); font-weight: 500; font-size: 26px; color: var(--text); margin: 0 0 10px; letter-spacing: 0.5px; }
+  .empty p { margin: 4px 0; font-size: 13px; line-height: 1.6; }
+  .empty .hint { background: var(--surface); border: 1px solid var(--border); padding: 18px 22px; margin: 24px auto 0; text-align: left; font-size: 12px; color: var(--text-soft); display: inline-block; max-width: 540px; border-left: 2px solid var(--accent); }
+  .empty .hint code { background: var(--bg); padding: 2px 6px; color: var(--accent); font-family: var(--mono); font-size: 11px; }
+  .empty .hint strong { color: var(--text); }
+  .loader { padding: 60px 24px; text-align: center; color: var(--muted); font-size: 13px; letter-spacing: 0.5px; }
+  .loader::after { content: ""; display: inline-block; width: 6px; height: 6px; background: var(--accent); margin-left: 10px; animation: pulse 1.2s infinite ease-in-out; vertical-align: middle; border-radius: 50%; }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
+
+  /* ====== Detail panel ====== */
+  .detail-pane { width: 480px; max-width: 50%; overflow-y: auto; background: var(--surface); border-left: 1px solid var(--border); display: none; box-shadow: var(--shadow); }
+  .detail-pane.open { display: block; }
+  .detail-head { padding: 24px 28px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: start; gap: 14px; }
+  .detail-head h2 { font-family: var(--serif); font-size: 26px; font-weight: 500; margin: 0 0 4px; letter-spacing: 0.5px; }
+  .detail-head .sid { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
+  .detail-head .meta-line { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .detail-close { background: transparent; border: 1px solid var(--border); color: var(--muted); width: 32px; height: 32px; border-radius: var(--radius); font-size: 16px; flex-shrink: 0; }
+  .detail-close:hover { color: var(--text); border-color: var(--accent); }
+  .detail-section { padding: 18px 28px; border-bottom: 1px solid var(--border); }
+  .detail-section h3 { font-family: var(--sans); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; font-weight: 600; }
+  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 10px 16px; font-size: 13px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; color: var(--text); }
+  .kv dd.mono { font-family: var(--mono); font-size: 12px; word-break: break-all; }
+  .kv dd.long { white-space: pre-wrap; line-height: 1.55; color: var(--text-soft); }
+  .activity-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .activity-tag { background: var(--surface-2); border: 1px solid var(--border); padding: 4px 10px; font-size: 11px; color: var(--text-soft); border-radius: var(--radius); }
+  .activity-tag.gold { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .detail-actions { padding: 20px 28px; display: flex; gap: 10px; }
+  .detail-actions .spacer { flex: 1; }
+
+  /* ====== Form modal ====== */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); width: 100%; max-width: 760px; max-height: calc(100vh - 48px); display: flex; flex-direction: column; box-shadow: var(--shadow); border-radius: var(--radius); overflow: hidden; }
+  .modal-head { padding: 22px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .modal-head h2 { font-family: var(--serif); font-size: 24px; font-weight: 500; margin: 0; letter-spacing: 0.5px; }
+  .modal-body { padding: 8px 32px 24px; overflow-y: auto; }
+  .modal-foot { padding: 16px 32px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; background: var(--bg-2); }
+  .modal-foot .spacer { flex: 1; }
+  .modal-foot .err-line { color: var(--danger); font-size: 12px; margin-right: auto; }
+
+  /* Form sections */
+  .form-section { padding: 22px 0; border-bottom: 1px solid var(--border); }
+  .form-section:last-child { border-bottom: none; }
+  .form-section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+  .form-section-head .num { font-family: var(--serif); font-size: 28px; font-weight: 500; color: var(--accent); width: 36px; }
+  .form-section-head .title { font-family: var(--sans); font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text); font-weight: 600; }
+  .form-section-head .hint { color: var(--muted); font-size: 11px; margin-left: auto; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .field-compact { margin-bottom: 0; }
+  .field-compact label { font-size: 10px; letter-spacing: 1.5px; }
+  .field-compact .req { color: var(--accent); margin-left: 4px; }
+
+  /* Activity multi-select grid */
+  .activity-grid { display: flex; flex-direction: column; gap: 16px; }
+  .activity-cat h4 { margin: 0 0 8px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .activity-cat .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .activity-opt { padding: 7px 12px; background: var(--bg); border: 1px solid var(--border); color: var(--text-soft); font-size: 12px; cursor: pointer; user-select: none; border-radius: var(--radius); transition: all 0.12s ease; }
+  .activity-opt:hover { border-color: var(--border-strong); color: var(--text); }
+  .activity-opt.selected { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+  /* Checkbox group */
+  .check-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; }
+  .check-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+  .check-row label { color: var(--text-soft); font-size: 13px; cursor: pointer; user-select: none; flex: 1; }
+  .check-row .meta { color: var(--muted); font-size: 11px; }
+
+  /* Polaria highlight */
+  .polaria-card { background: linear-gradient(180deg, var(--accent-soft) 0%, transparent 100%); border: 1px solid var(--accent-line); padding: 14px 16px; border-radius: var(--radius); margin-top: 14px; }
+  .polaria-card .label { font-family: var(--serif); font-size: 16px; color: var(--accent); margin-bottom: 4px; }
+  .polaria-card .sub { color: var(--text-soft); font-size: 11px; margin-bottom: 10px; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 18px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); font-size: 13px; z-index: 200; opacity: 0; transform: translateY(8px); transition: all 0.25s ease; box-shadow: var(--shadow); border-radius: var(--radius); border-left: 2px solid var(--accent); }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.err { border-left-color: var(--danger); }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .row, .list-head { grid-template-columns: 100px 1.4fr 1fr 0.9fr 110px 130px; }
+    .row .col-dates, .list-head .col-dates { display: none; }
+    .detail-pane { width: 100%; max-width: 100%; position: fixed; top: 0; right: 0; height: 100vh; z-index: 80; }
+  }
+  @media (max-width: 720px) {
+    .row, .list-head { grid-template-columns: 1.4fr 1fr 110px; }
+    .row .col-id, .row .col-pkg, .row .col-guests, .list-head .col-id, .list-head .col-pkg, .list-head .col-guests { display: none; }
+    .form-grid { grid-template-columns: 1fr; }
+    header.top { padding: 14px 16px; gap: 12px; }
+    .toolbar { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="login-wrap" id="login-wrap">
+  <form class="login-card" id="login-form" onsubmit="return login(event)">
+    <h1 class="login-brand">HD Arctic</h1>
+    <div class="login-brand-sub">Operations · Havellen &amp; Dahl AS</div>
+    <div class="field">
+      <label for="li-name">Your name</label>
+      <input id="li-name" type="text" autocomplete="username" required placeholder="William / Erlend" />
+    </div>
+    <div class="field">
+      <label for="li-password">Password</label>
+      <input id="li-password" type="password" autocomplete="current-password" required />
+      <div class="err" id="li-error" style="display:none"></div>
+    </div>
+    <button class="btn full" type="submit" id="li-submit">Sign in</button>
+  </form>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="app" id="app">
+
+  <header class="top">
+    <div class="brand">
+      <div class="brand-name">HD Arctic</div>
+      <div class="brand-sub">Operations</div>
+    </div>
+    <div class="top-spacer"></div>
+    <div class="user-chip">
+      <span class="who">Signed in as <strong id="user-name">—</strong></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search">
+      <input id="search-input" type="search" placeholder="Search name, email, package, ID…" oninput="onSearchInput()" />
+    </div>
+    <div class="filter-group" id="status-chips"></div>
+    <div class="filter-group" id="source-chips"></div>
+    <div class="right">
+      <span class="count" id="bookings-count"></span>
+      <button class="btn sm" onclick="openCreateModal()">+ New reservation</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="list-pane" id="list-pane">
+      <div class="list-head">
+        <div class="col-id">ID · source</div>
+        <div class="col-name">Guest</div>
+        <div class="col-pkg">Package · room</div>
+        <div class="col-dates">Stay</div>
+        <div class="col-guests">Guests</div>
+        <div class="col-status">Status</div>
+        <div class="col-amount">Total</div>
+      </div>
+      <div id="rows"></div>
+    </div>
+    <aside class="detail-pane" id="detail-pane"></aside>
+  </main>
+</div>
+
+<!-- ============ FORM MODAL ============ -->
+<div class="modal-overlay" id="form-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="form-title">New reservation</h2>
+      <button class="detail-close" onclick="closeForm()">×</button>
+    </div>
+    <div class="modal-body" id="form-body"></div>
+    <div class="modal-foot">
+      <div class="err-line" id="form-err"></div>
+      <div class="spacer"></div>
+      <button class="btn ghost" onclick="closeForm()">Cancel</button>
+      <button class="btn" id="form-save-btn" onclick="saveForm()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== STATE =====================
+const $ = (id) => document.getElementById(id);
+
+let state = {
+  user: null,
+  reservations: [],
+  filter: { search: '', status: 'all', source: 'all' },
+  selectedId: null,
+  editingId: null,          // null = new, "HDA-xxxx" = edit
+  schema: null,             // dropdown options from /api/admin/schema
+  searchTimer: null,
+};
+
+// ===================== HELPERS =====================
+const escapeHtml = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtNok = (n) => {
+  if (!n) return '—';
+  return new Intl.NumberFormat('nb-NO', { style: 'currency', currency: 'NOK', maximumFractionDigits: 0 }).format(Number(n));
+};
+const fmtDate = (s) => {
+  if (!s) return '—';
+  const d = new Date(s);
+  if (isNaN(d)) return s;
+  return new Intl.DateTimeFormat('nb-NO', { year: 'numeric', month: 'short', day: 'numeric' }).format(d);
+};
+const fmtDateTime = (unix) => {
+  if (!unix) return '—';
+  return new Intl.DateTimeFormat('nb-NO', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(unix * 1000));
+};
+const statusPill = (status) => {
+  const cls = (status || '').toLowerCase().replace(/[^a-z]/g, '');
+  return `<span class="pill ${cls}">${escapeHtml(status || '—')}</span>`;
+};
+function toast(msg, isErr = false) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('err', isErr);
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===================== AUTH =====================
+async function checkSession() {
+  try {
+    const r = await fetch('/api/admin/me');
+    if (!r.ok) return false;
+    const j = await r.json();
+    state.user = j.user;
+    return true;
+  } catch (_) { return false; }
+}
+async function login(ev) {
+  ev.preventDefault();
+  const name = $('li-name').value.trim();
+  const password = $('li-password').value;
+  const submit = $('li-submit');
+  const errEl = $('li-error');
+  errEl.style.display = 'none';
+  submit.disabled = true;
+  try {
+    const r = await fetch('/api/admin/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, password }),
+    });
+    const j = await r.json();
+    if (!r.ok) { errEl.textContent = j.error || 'Sign-in failed'; errEl.style.display = 'block'; return false; }
+    state.user = j.user;
+    enterApp();
+  } catch (e) {
+    errEl.textContent = e.message || 'Network error';
+    errEl.style.display = 'block';
+  } finally {
+    submit.disabled = false;
+  }
+  return false;
+}
+async function logout() {
+  try { await fetch('/api/admin/logout', { method: 'POST' }); } catch (_) {}
+  state.user = null;
+  $('app').classList.remove('open');
+  $('login-wrap').style.display = 'flex';
+  $('li-password').value = '';
+}
+async function enterApp() {
+  $('login-wrap').style.display = 'none';
+  $('app').classList.add('open');
+  $('user-name').textContent = state.user || '—';
+  await loadSchema();
+  renderFilters();
+  await loadReservations();
+}
+
+// ===================== SCHEMA =====================
+async function loadSchema() {
+  try {
+    const r = await fetch('/api/admin/schema');
+    if (!r.ok) { state.schema = null; return; }
+    state.schema = await r.json();
+  } catch (_) { state.schema = null; }
+}
+
+// ===================== FILTERS =====================
+function renderFilters() {
+  const statuses = ['all', 'New enquiry', 'Confirmed', 'Paid', 'Completed', 'Cancelled', 'Refunded'];
+  $('status-chips').innerHTML = statuses.map((s) => `
+    <button class="chip ${state.filter.status === s ? 'active' : ''}" onclick="setFilter('status', '${s.replace(/'/g, "&#39;")}')">
+      ${s === 'all' ? 'All status' : escapeHtml(s)}
+    </button>
+  `).join('');
+
+  const sources = ['all', 'Stripe booking', 'Concierge', 'Groups', 'Incentive', 'Match Day'];
+  $('source-chips').innerHTML = sources.map((s) => `
+    <button class="chip ${state.filter.source === s ? 'active' : ''}" onclick="setFilter('source', '${s.replace(/'/g, "&#39;")}')">
+      ${s === 'all' ? 'All sources' : escapeHtml(s)}
+    </button>
+  `).join('');
+}
+function setFilter(key, val) {
+  state.filter[key] = val;
+  renderFilters();
+  renderRows();
+}
+function onSearchInput() {
+  clearTimeout(state.searchTimer);
+  state.searchTimer = setTimeout(() => {
+    state.filter.search = $('search-input').value.trim().toLowerCase();
+    renderRows();
+  }, 180);
+}
+
+// ===================== LIST =====================
+async function loadReservations() {
+  const rows = $('rows');
+  rows.innerHTML = '<div class="loader">Loading reservations</div>';
+  try {
+    const r = await fetch('/api/admin/bookings');
+    if (r.status === 401) { await logout(); return; }
+    const j = await r.json();
+    if (!r.ok) {
+      if (j.error === 'KV_NOT_CONFIGURED') {
+        rows.innerHTML = kvNotConfiguredHtml();
+      } else {
+        rows.innerHTML = `<div class="empty"><h3>Could not load</h3><p>${escapeHtml(j.error || 'Unknown error')}</p></div>`;
+      }
+      return;
+    }
+    state.reservations = j.reservations || [];
+    renderRows();
+  } catch (e) {
+    rows.innerHTML = `<div class="empty"><h3>Network error</h3><p>${escapeHtml(e.message)}</p></div>`;
+  }
+}
+
+function kvNotConfiguredHtml() {
+  return `
+    <div class="empty">
+      <h3>Storage not yet connected</h3>
+      <p>This app uses Vercel KV to store reservations. Once KV is added to the project and the environment variables are set, you can start logging bookings.</p>
+      <div class="hint">
+        <strong>Setup checklist:</strong><br>
+        1. Vercel Dashboard → Storage → Create Database → KV<br>
+        2. Connect to the <code>hdarctic-payments-app</code> project<br>
+        3. Verify <code>KV_REST_API_URL</code> and <code>KV_REST_API_TOKEN</code> appear in Environment Variables<br>
+        4. Redeploy (or wait a minute) and reload this page
+      </div>
+    </div>`;
+}
+
+function filteredReservations() {
+  const { search, status, source } = state.filter;
+  return state.reservations.filter((r) => {
+    if (status !== 'all' && r.status !== status) return false;
+    if (source !== 'all' && r.source !== source) return false;
+    if (search) {
+      const hay = [r.id, r.guest_name, r.email, r.phone, r.package, r.room, r.arrival, r.concierge_brief, r.stripe_session_id]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderRows() {
+  const rows = $('rows');
+  const list = filteredReservations();
+  $('bookings-count').textContent = list.length === state.reservations.length
+    ? `${list.length} ${list.length === 1 ? 'reservation' : 'reservations'}`
+    : `${list.length} of ${state.reservations.length}`;
+
+  if (!list.length) {
+    rows.innerHTML = state.reservations.length === 0
+      ? `<div class="empty"><h3>No reservations yet</h3><p>Press "+ New reservation" to log your first booking.</p></div>`
+      : `<div class="empty"><h3>No matches</h3><p>Try a different search or clear filters.</p></div>`;
+    return;
+  }
+
+  rows.innerHTML = list.map((r) => {
+    const stay = [r.arrival ? fmtDate(r.arrival) : null, r._nights ? `${r._nights}n` : null].filter(Boolean).join(' · ') || '—';
+    const guests = [r.adults ? `${r.adults} ad` : null, r.children ? `${r.children} ch` : null].filter(Boolean).join(', ') || '—';
+    const selected = r.id === state.selectedId ? ' selected' : '';
+    return `
+      <div class="row${selected}" onclick="selectRow('${r.id}')">
+        <div class="col-id">${escapeHtml(r.id)}<span class="src">${escapeHtml(r.source || '—')}</span></div>
+        <div class="col-name"><strong>${escapeHtml(r.guest_name) || '<span style="color:var(--muted)">No name</span>'}</strong><span class="em">${escapeHtml(r.email) || ''}</span></div>
+        <div class="col-pkg">${escapeHtml(r.package) || '—'}${r.room ? `<span class="room">${escapeHtml(r.room)}</span>` : ''}</div>
+        <div class="col-dates">${stay}${r._season ? `<span class="nights">${escapeHtml(r._season)}</span>` : ''}</div>
+        <div class="col-guests">${guests}</div>
+        <div class="col-status">${statusPill(r.status)}</div>
+        <div class="col-amount">${r.total_nok ? fmtNok(r.total_nok) : '<span style="color:var(--muted)">—</span>'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===================== DETAIL PANEL =====================
+function selectRow(id) {
+  state.selectedId = id;
+  renderRows();
+  renderDetail();
+}
+function closeDetail() {
+  state.selectedId = null;
+  $('detail-pane').classList.remove('open');
+  renderRows();
+}
+function renderDetail() {
+  const pane = $('detail-pane');
+  if (!state.selectedId) { pane.classList.remove('open'); return; }
+  const r = state.reservations.find((x) => x.id === state.selectedId);
+  if (!r) { pane.classList.remove('open'); return; }
+  pane.classList.add('open');
+
+  const activitiesHtml = (r.activities || []).length
+    ? `<div class="activity-tags">${r.activities.map((a) => `<span class="activity-tag">${escapeHtml(a)}</span>`).join('')}${r.polaria_after_hours ? '<span class="activity-tag gold">Polaria After Hours</span>' : ''}</div>`
+    : (r.polaria_after_hours ? '<div class="activity-tags"><span class="activity-tag gold">Polaria After Hours</span></div>' : '<span style="color:var(--muted)">None recorded</span>');
+
+  const addons = [];
+  if (r.room_setup) addons.push('Room setup');
+  if (r.champagne) addons.push('Champagne in room');
+  if (r.airport_pickup) addons.push('Airport pickup');
+  if (r.extra_nights) addons.push(`${r.extra_nights} extra night${r.extra_nights !== 1 ? 's' : ''}`);
+  const addonsHtml = addons.length || r.other_addons
+    ? `<div class="activity-tags">${addons.map((a) => `<span class="activity-tag">${escapeHtml(a)}</span>`).join('')}</div>${r.other_addons ? `<dd class="long" style="margin-top:8px">${escapeHtml(r.other_addons)}</dd>` : ''}`
+    : '<span style="color:var(--muted)">None</span>';
+
+  pane.innerHTML = `
+    <div class="detail-head">
+      <div>
+        <h2>${escapeHtml(r.guest_name) || '<span style="color:var(--muted)">No name</span>'}</h2>
+        <div class="sid">${escapeHtml(r.id)} · ${escapeHtml(r.source || '')}</div>
+        <div class="meta-line">${statusPill(r.status)}${r.polaria_after_hours ? '<span class="pill gold">Polaria After Hours</span>' : ''}</div>
+      </div>
+      <button class="detail-close" onclick="closeDetail()">×</button>
+    </div>
+
+    <div class="detail-section">
+      <h3>Guest</h3>
+      <dl class="kv">
+        <dt>Name</dt><dd>${escapeHtml(r.guest_name) || '—'}</dd>
+        <dt>Email</dt><dd>${r.email ? `<a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a>` : '—'}</dd>
+        <dt>Phone</dt><dd>${r.phone ? `<a href="tel:${escapeHtml(r.phone)}">${escapeHtml(r.phone)}</a>` : '—'}</dd>
+        <dt>Country</dt><dd>${escapeHtml(r.country) || '—'}</dd>
+        <dt>Language</dt><dd>${escapeHtml(r.language) || '—'}</dd>
+      </dl>
+    </div>
+
+    <div class="detail-section">
+      <h3>Stay</h3>
+      <dl class="kv">
+        <dt>Package</dt><dd>${escapeHtml(r.package) || '—'}</dd>
+        <dt>Hotel</dt><dd>${escapeHtml(r.hotel) || '—'}</dd>
+        <dt>Room</dt><dd>${escapeHtml(r.room) || '—'}</dd>
+        <dt>Arrival</dt><dd>${fmtDate(r.arrival)}</dd>
+        <dt>Departure</dt><dd>${fmtDate(r.departure)}</dd>
+        <dt>Nights</dt><dd>${r._nights != null ? r._nights : '—'}</dd>
+        <dt>Season</dt><dd>${escapeHtml(r._season) || '—'}</dd>
+        <dt>Guests</dt><dd>${r.adults || 0} adults · ${r.children || 0} children</dd>
+      </dl>
+    </div>
+
+    <div class="detail-section">
+      <h3>Activities</h3>
+      ${activitiesHtml}
+      ${r.day_by_day ? `<dl class="kv" style="margin-top:14px"><dt>Day-by-day</dt><dd class="long">${escapeHtml(r.day_by_day)}</dd></dl>` : ''}
+    </div>
+
+    <div class="detail-section">
+      <h3>Add-ons</h3>
+      ${addonsHtml}
+    </div>
+
+    <div class="detail-section">
+      <h3>Payment</h3>
+      <dl class="kv">
+        <dt>Rate</dt><dd>${escapeHtml(r.rate) || '—'}</dd>
+        <dt>Total</dt><dd>${fmtNok(r.total_nok)}</dd>
+        ${r.deposit_nok ? `<dt>Deposit</dt><dd>${fmtNok(r.deposit_nok)}</dd>` : ''}
+        ${r.stripe_session_id ? `<dt>Stripe</dt><dd class="mono"><a href="https://dashboard.stripe.com/payments/${escapeHtml(r.stripe_session_id)}" target="_blank" rel="noopener">${escapeHtml(r.stripe_session_id)} ↗</a></dd>` : ''}
+        ${r.receipt_url ? `<dt>Receipt</dt><dd><a href="${escapeHtml(r.receipt_url)}" target="_blank" rel="noopener">View ↗</a></dd>` : ''}
+        ${r.refund_nok ? `<dt>Refund</dt><dd>${fmtNok(r.refund_nok)}${r.refund_reason ? ` — ${escapeHtml(r.refund_reason)}` : ''}</dd>` : ''}
+      </dl>
+    </div>
+
+    ${(r.concierge_brief || r.dietary_mobility || r.internal_notes) ? `
+    <div class="detail-section">
+      <h3>Notes</h3>
+      <dl class="kv">
+        ${r.concierge_brief ? `<dt>Brief</dt><dd class="long">${escapeHtml(r.concierge_brief)}</dd>` : ''}
+        ${r.dietary_mobility ? `<dt>Dietary / mobility</dt><dd class="long">${escapeHtml(r.dietary_mobility)}</dd>` : ''}
+        ${r.internal_notes ? `<dt>Internal</dt><dd class="long">${escapeHtml(r.internal_notes)}</dd>` : ''}
+        ${r.handled_by ? `<dt>Handled by</dt><dd>${escapeHtml(r.handled_by)}</dd>` : ''}
+      </dl>
+    </div>` : ''}
+
+    <div class="detail-section">
+      <h3>Source &amp; meta</h3>
+      <dl class="kv">
+        <dt>How found</dt><dd>${escapeHtml(r.how_found) || '—'}</dd>
+        ${r.referrer_name ? `<dt>Referrer</dt><dd>${escapeHtml(r.referrer_name)}</dd>` : ''}
+        ${r.utm_source ? `<dt>UTM source</dt><dd class="mono">${escapeHtml(r.utm_source)}</dd>` : ''}
+        <dt>Created</dt><dd>${fmtDateTime(r.created)}${r.created_by ? ` by ${escapeHtml(r.created_by)}` : ''}</dd>
+        ${r.updated && r.updated !== r.created ? `<dt>Updated</dt><dd>${fmtDateTime(r.updated)}${r.updated_by ? ` by ${escapeHtml(r.updated_by)}` : ''}</dd>` : ''}
+      </dl>
+    </div>
+
+    <div class="detail-actions">
+      <button class="btn ghost" onclick="openEditModal('${escapeHtml(r.id)}')">Edit</button>
+      <div class="spacer"></div>
+      <button class="btn danger" onclick="deleteReservation('${escapeHtml(r.id)}')">Delete</button>
+    </div>
+  `;
+}
+
+// ===================== FORM =====================
+function openCreateModal() {
+  state.editingId = null;
+  $('form-title').textContent = 'New reservation';
+  $('form-err').textContent = '';
+  renderForm({}); // empty
+  $('form-modal').classList.add('open');
+}
+function openEditModal(id) {
+  const r = state.reservations.find((x) => x.id === id);
+  if (!r) return;
+  state.editingId = id;
+  $('form-title').textContent = `Edit ${id}`;
+  $('form-err').textContent = '';
+  renderForm(r);
+  $('form-modal').classList.add('open');
+}
+function closeForm() {
+  $('form-modal').classList.remove('open');
+  state.editingId = null;
+}
+
+function renderForm(r) {
+  const s = state.schema || {};
+  const v = (k, def = '') => r[k] != null ? r[k] : def;
+  const sel = (k, opts, def = '') => {
+    const val = v(k, def);
+    return opts.map((o) => `<option value="${escapeHtml(o)}" ${val === o ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('');
+  };
+  const selObj = (k, opts) => {
+    const val = v(k, '');
+    return opts.map((o) => `<option value="${escapeHtml(o.value)}" ${val === o.value ? 'selected' : ''}>${escapeHtml(o.value)}</option>`).join('');
+  };
+  const activitiesGrouped = (s.activities || []).reduce((acc, a) => {
+    (acc[a.category] = acc[a.category] || []).push(a.name);
+    return acc;
+  }, {});
+  const selectedActs = new Set(r.activities || []);
+
+  $('form-body').innerHTML = `
+    <!-- Section 1: Identity -->
+    <div class="form-section">
+      <div class="form-section-head"><span class="num">01</span><span class="title">Status &amp; source</span></div>
+      <div class="form-grid">
+        <div class="field field-compact">
+          <label>Status</label>
+          <select name="status">${selObj('status', s.statuses || [])}</select>
+        </div>
+        <div class="field field-compact">
+          <label>Source</label>
+          <select name="source">${sel('source', s.sources || [])}</select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Guest -->
+    <div class="form-section">
+      <div class="form-section-head"><span class="num">02</span><span class="title">Guest</span></div>
+      <div class="form-grid">
+        <div class="field field-compact full">
+          <label>Guest name <span class="req">*</span></label>
+          <input name="guest_name" type="text" value="${escapeHtml(v('guest_name'))}" />
+        </div>
+        <div class="field field-compact">
+          <label>Email <span class="req">*</span></label>
+          <input name="email" type="email" value="${escapeHtml(v('email'))}" />
+        </div>
+        <div class="field field-compact">
+          <label>Phone</label>
+          <input name="phone" type="tel" value="${escapeHtml(v('phone'))}" />
+        </div>
+        <div class="field field-compact">
+          <label>Country</label>
+          <select name="country"><option value="">—</option>${sel('country', s.countries || [])}</select>
+        </div>
+        <div class="field field-compact">
+          <label>Language</label>
+          <select name="language">${sel('language', s.languages || [], 'English')}</select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Stay -->
+    <div class="form-section">
+      <div class="form-section-head"><span class="num">03</span><span class="title">Stay · hotel, dates, nights</span></div>
+      <div class="form-grid">
+        <div class="field field-compact full">
+          <label>Package</label>
+          <select name="package"><option value="">—</option>${sel('package', s.packages || [])}</select>
+        </div>
+        <div class="field field-compact">
+          <label>Hotel</label>
+          <select name="hotel">${sel('hotel', s.hotels || [], 'Radisson Blu Tromsø')}</select>
+        </div>
+        <div class="field field-compact">
+          <label>Room</label>
+          <select name="room">${sel('room', s.rooms || [], 'Standard Room')}</select>
+        </div>
+        <div class="field field-compact">
+          <label>Arrival</label>
+          <input name="arrival" type="date" value="${escapeHtml(v('arrival'))}" />
+        </div>
+        <div class="field field-compact">
+          <label>Departure</label>
+          <input name="departure" type="date" value="${escapeHtml(v('departure'))}" />
+        </div>
+        <div class="field field-compact">
+          <label>Adults</label>
+          <input name="adults" type="number" min="0" value="${v('adults', 2)}" />
+        </div>
+        <div class="field field-compact">
+          <label>Children (1–12)</label>
+          <input name="children" type="number" min="0" value="${v('children', 0)}" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Activities -->
+    <div class="form-section">
+      <div class="form-section-head"><span class="num">04</span><span class="title">Activities &amp; day-by-day</span><span class="hint">Click to toggle</span></div>
+      <div class="activity-grid">
+        ${Object.entries(activitiesGrouped).map(([cat, acts]) => `
+          <div class="activity-cat">
+            <h4>${escapeHtml(cat)}</h4>
+            <div class="opts">
+              ${acts.map((name) => `
+                <div class="activity-opt ${selectedActs.has(name) ? 'selected' : ''}" data-act="${escapeHtml(name)}" onclick="toggleActivity(this)">${escapeHtml(name)}</div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="polaria-card">
+        <div class="label">Polaria After Hours</div>
+        <div class="sub">HD Arctic exclusive — Norway's most northerly aquarium, hosted privately after closing.</div>
+        <div class="check-row">
+          <input type="checkbox" id="cb-polaria" name="polaria_after_hours" ${v('polaria_after_hours') ? 'checked' : ''} />
+          <label for="cb-polaria">Include Polaria After Hours in this booking</label>
+        </div>
+      </div>
+
+      <div class="field field-compact full" style="margin-top: 18px">
+        <label>Day-by-day notes</label>
+        <textarea name="day_by_day" rows="5" placeholder="Day 1: Arrival, Polaria After Hours 20:00&#10;Day 2: ...">${escapeHtml(v('day_by_day'))}</textarea>
+      </div>
+    </div>
+
+    <!-- Section 5: Add-ons -->
+    <div class="form-section">
+      <div class="form-section-head"><span class="num">05</span><span class="title">Add-ons</span></div>
+      <div class="check-row">
+        <input type="checkbox" id="cb-room-setup" name="room_setup" ${v('room_setup') ? 'checked' : ''} />
+        <label for="cb-room-setup">Room setup (flowers, welcome card)</label>
+        <span class="meta">699 NOK</span>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="cb-champagne" name="champagne" ${v('champagne') ? 'checked' : ''} />
+        <label for="cb-champagne">Champagne in room</label>
+        <span class="meta">1 200 NOK</span>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="cb-airport" name="airport_pickup" ${v('airport_pickup') ? 'checked' : ''} />
+        <label for="cb-airport">Airport pickup</label>
+        <span class="meta">1 200 NOK</span>
+      </div>
+      <div class="form-grid" style="margin-top: 12px">
+        <div class="field field-compact">
+          <label>Extra nights</label>
+          <input name="extra_nights" type="number" min="0" value="${v('extra_nights', 0)}" />
+        </div>
+        <div class="field field-compact">
+          <label>&nbsp;</label>
+          <span class="hint" style="color:var(--muted);font-size:11px">Beyond package length</span>
+        </div>
+        <div class="field field-compact full">
+          <label>Other add-ons (free text)</label>
+          <input name="other_addons" type="text" value="${escapeHtml(v('other_addons'))}" placeholder="e.g. Private chef dinner, extra transfer" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 6: Payment -->
+    <div class="form-section">
+      <div class="form-section-head"><span class="num">06</span><span class="title">Payment</span></div>
+      <div class="form-grid">
+        <div class="field field-compact">
+          <label>Rate</label>
+          <select name="rate"><option value="">—</option>${sel('rate', s.rates || [])}</select>
+        </div>
+        <div class="field field-compact">
+          <label>Total (NOK)</label>
+          <input name="total_nok" type="number" min="0" step="100" value="${v('total_nok', 0)}" />
+        </div>
+        <div class="field field-compact">
+          <label>Deposit paid (NOK)</label>
+          <input name="deposit_nok" type="number" min="0" step="100" value="${v('deposit_nok', 0)}" />
+        </div>
+        <div class="field field-compact">
+          <label>Stripe Session ID</label>
+          <input name="stripe_session_id" type="text" value="${escapeHtml(v('stripe_session_id'))}" placeholder="cs_live_..." />
+        </div>
+        <div class="field field-compact full">
+          <label>Receipt URL</label>
+          <input name="receipt_url" type="url" value="${escapeHtml(v('receipt_url'))}" />
+        </div>
+        <div class="field field-compact">
+          <label>Refund (NOK)</label>
+          <input name="refund_nok" type="number" min="0" step="100" value="${v('refund_nok', 0)}" />
+        </div>
+        <div class="field field-compact">
+          <label>Refund reason</label>
+          <input name="refund_reason" type="text" value="${escapeHtml(v('refund_reason'))}" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 7: Notes -->
+    <div class="form-section">
+      <div class="form-section-head"><span class="num">07</span><span class="title">Notes &amp; concierge</span></div>
+      <div class="field field-compact">
+        <label>Concierge brief</label>
+        <textarea name="concierge_brief" rows="4" placeholder="What the guest told us they want from the trip…">${escapeHtml(v('concierge_brief'))}</textarea>
+      </div>
+      <div class="field field-compact" style="margin-top:14px">
+        <label>Dietary / mobility</label>
+        <textarea name="dietary_mobility" rows="2">${escapeHtml(v('dietary_mobility'))}</textarea>
+      </div>
+      <div class="field field-compact" style="margin-top:14px">
+        <label>Internal notes</label>
+        <textarea name="internal_notes" rows="3" placeholder="Not shared with guest">${escapeHtml(v('internal_notes'))}</textarea>
+      </div>
+      <div class="field field-compact" style="margin-top:14px">
+        <label>Handled by</label>
+        <select name="handled_by"><option value="">—</option>${sel('handled_by', s.handled_by || [])}</select>
+      </div>
+    </div>
+
+    <!-- Section 8: Source tracking -->
+    <div class="form-section">
+      <div class="form-section-head"><span class="num">08</span><span class="title">How they found us</span></div>
+      <div class="form-grid">
+        <div class="field field-compact">
+          <label>How found</label>
+          <select name="how_found"><option value="">—</option>${sel('how_found', s.how_found || [])}</select>
+        </div>
+        <div class="field field-compact">
+          <label>Referrer name</label>
+          <input name="referrer_name" type="text" value="${escapeHtml(v('referrer_name'))}" />
+        </div>
+        <div class="field field-compact full">
+          <label>UTM source</label>
+          <input name="utm_source" type="text" value="${escapeHtml(v('utm_source'))}" />
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleActivity(el) {
+  el.classList.toggle('selected');
+}
+
+function collectForm() {
+  const body = $('form-body');
+  const data = {};
+  body.querySelectorAll('input[name], select[name], textarea[name]').forEach((el) => {
+    const k = el.name;
+    if (el.type === 'checkbox') data[k] = el.checked;
+    else if (el.type === 'number') data[k] = Number(el.value) || 0;
+    else data[k] = el.value;
+  });
+  data.activities = Array.from(body.querySelectorAll('.activity-opt.selected')).map((el) => el.dataset.act);
+  return data;
+}
+
+async function saveForm() {
+  const errEl = $('form-err');
+  const btn = $('form-save-btn');
+  errEl.textContent = '';
+  btn.disabled = true;
+
+  const payload = collectForm();
+  const isEdit = !!state.editingId;
+  const url = isEdit ? `/api/admin/booking?id=${encodeURIComponent(state.editingId)}` : '/api/admin/bookings';
+  const method = isEdit ? 'PUT' : 'POST';
+
+  try {
+    const r = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      if (j.errors) {
+        errEl.textContent = Object.values(j.errors).join(' · ');
+      } else {
+        errEl.textContent = j.error || 'Save failed';
+      }
+      return;
+    }
+    toast(isEdit ? 'Reservation updated' : 'Reservation created');
+    closeForm();
+    await loadReservations();
+    if (j.reservation && j.reservation.id) {
+      state.selectedId = j.reservation.id;
+      renderDetail();
+    }
+  } catch (e) {
+    errEl.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteReservation(id) {
+  if (!confirm(`Delete ${id}? This cannot be undone.`)) return;
+  try {
+    const r = await fetch(`/api/admin/booking?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (!r.ok) {
+      const j = await r.json();
+      toast(j.error || 'Delete failed', true);
+      return;
+    }
+    toast(`${id} deleted`);
+    closeDetail();
+    await loadReservations();
+  } catch (e) {
+    toast(e.message, true);
+  }
+}
+
+// ===================== INIT =====================
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if ($('form-modal').classList.contains('open')) closeForm();
+    else if (state.selectedId) closeDetail();
+  }
+});
+
+(async function init() {
+  const ok = await checkSession();
+  if (ok) enterApp();
+})();
+</script>
+
+</body>
+</html>
